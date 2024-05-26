@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Chat App</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="">
+    </head>
+    <body>
+       <h1>Chatting</h1>
+
+       <!-- for interchanging messages -->
+       <input type="text" id="message" placeholder="Enter a message!">
+       <button id="sendBtn">Send</button>
+
+       <!-- WE HERE DISPLAY THE MESSAGE THAT WE RECEIVE FROM OUR BACKEND AGAIN SO THE PROCESS GOES LIKE THIS THAT WE MESSAGE FROM THE SERVER ON 
+    OUR FRONTEND WHICH IS RECEIVED IN OUR BACKEND AND THEN OUR BACKEND SENDS THAT VERY MESSAGE TO OUR FRONTEND AGAIN AND WE SIMPLY DISPLAY IT  -->
+    <div id="messages"></div>    
+
+
+       <script src='/socket.io/socket.io.js'></script>
+        <script>
+            const socket = io();
+            const sendBtn = document.getElementById("sendBtn");
+            const messageInput = document.getElementById('message');
+            const allMessages = document.getElementById('messages');
+
+            // we are now handling the event that is coming from my backend socket 
+            // socket.on('message' , message=>console.log(message));
+            // now as above we just logged the  incoming message instead this time we will create a paragraph field instead 
+            socket.on('message' , (message)=>{
+                const p = document.createElement('p');
+                p.innerText = message;
+                allMessages.appendChild(p);
+            });
+// so we created a new paragraph tag and appended the innner text of it as the message we received from our backend and then we simply appended 
+// this paragraph tag we created into our all messages 
+
+
+
+            sendBtn.addEventListener('click',()=>{
+                const message = messageInput.value;
+                console.log(message);
+
+// sending the message to our backend by socket's emit message -> inside which 1st is we need to specify a name of what we are emiting 2nd is the 
+// actual message 
+                socket.emit('user-message' , message);
+            })
+        </script>
+    </body>
+</html>

@@ -1,0 +1,151 @@
+1stly do npm init -y then -> 
+
+start by installing express , nodemon , socket.io 
+(npm i socket.io)
+
+
+then create a public folder -> index.html file -> basic html template -> some random message 
+
+
+then come to index.js -> require http ,express , path 
+
+now destructure app from express -> use express.static method to resolve this public directory 
+
+make the port listen to a server (9000 here )
+
+define a route on which we send the index.html file and then run the code via nodemon 
+
+now if you see your html code being rendered on the screen then you are good to go on -> http://localhost:9000/
+
+----------------------------------------------------------------------------------------------------------------------------
+i.e-> 
+const http = require('http')
+const express = require('express');
+
+const path = require('path')
+
+const app = express();
+const server = http.createServer(app);
+
+app.use(express.static(path.resolve('./public')));
+
+app.get('/' , (req,res)=>{
+    return (res.sendFile('/public/index.html'))
+})
+
+
+server.listen(9000, ()=>{
+    console.log(`Server started at port:9000`);
+})
+
+----------------------------------------------------------------------------------------------------------------------------
+
+
+*starting to use socket.io
+
+import socket.io in index.js-> const {Server} = require("socket.io");
+
+now we make an io instance and pass in our existing server to it -> const io = new Server(server);
+[NOTE: This io will only be responsible to handle our sockets ]
+
+
+now we handle the socket connection -> 
+// remember -> on connection we also get a client which will have client's information in socket.io language we say client as socket 
+// suppose we have 2 users so both of them will be two different sockets 
+//every socket has its own unique id 
+io.on('connection', (socket)=>{
+       console.log("A new user has connected",socket.id)
+})
+
+
+*-> NOW WE GO TO FRONTEND AND INSTALL SOCKET.io by adding a script tag 
+       <script src='/socket.io/socket.io.js'></script>
+
+*-> Now we make a socket on the frontend -> 
+ <script>
+            const socket = io();
+ </script>
+
+
+
+Now if you refresh the screen on frontend we will receive a message on the backend server that a new user has connected and some 
+unique ID 
+
+
+________________________
+NOW WE JUST HAVE TO INTERCHANGE THE MESSAGES so for that -> 
+
+now in our frontend suppose we have a button and a message input box 
+<input type="text" id="message" placeholder="Enter a message!">
+<button id="sendBtn">Send</button>
+
+now we reference this inside the script tag where we destructured our io and also add an eventlistener to fetch the value that was 
+passed onto the message field --->
+const sendBtn = document.getElementById("sendBtn");
+            const messageInput = document.getElementById('message');
+
+            sendBtn.addEventListener('click',()=>{
+                const message = messageInput.value;
+                console.log(message);
+        
+and after it we will send the message to backend through socket.emit('') method which just means that emit or send this message -> 
+// sending the message to our backend by socket's emit message -> inside which 1st is we need to specify a name of what we are emiting 2nd is the 
+// actual message 
+                socket.emit('user-message' , message);    
+
+            })
+
+
+*Now in the backend we will inside our io.on method -> we use socket.on method and in its 1st argument will be the thing that has been passed on 
+by the frontend and then we will simply be logging it here in the backend 
+i.e-> //now on backend we say that whenever something named user-message comes from our frontend so there we will have our message and we will log it here 
+    socket.on('user-message', message=>{
+        console.log("A New User Message :", message)
+    })           
+
+
+now test that if on sending a message from our frontend its being rendered onto the backend we are good to go 
+
+
+Now this is the basic testing part but we don't want to log the message
+ ****** INSTEAD WE WANT OUR SERVER TO SEND THIS MESSAGE TO ALL THE CLIENTS  ******
+
+ -> SO NOW FOR THAT INSTEAD OF LOGGING THE MESSAGE WE WILL USE emit method again here in our server and forward that very message to everyone -> 
+ // this part states that if some message comes from our frontend simply forward it to all 
+        io.emit('message' , message)
+
+
+
+----------------------
+Now coming back to our frontend    WE RECEIVE THAT MESSAGE THAT HAS AGAIN BEING forwarded BY OUR BACKEND AND LOG IT  ->   
+// we are now handling the event that is coming from my backend socket 
+            socket.on('message' , message=>console.log(message));
+
+
+
+-------------------------------------------------------------------------------
+NOW TO TEST THIS OPEN TWO BROWSERS AND IF WE SEND A MESSAGE FROM ONE WE CAN SEE THE LOG STATEMENT APPEARING ON ANOTHER AS WELL   
+
+
+NOW ALSO IN OUR FRONTEND INSTEAD OF SIMPLY LOGGING THE MESSAGE WE DISPLAY IT INSIDE A DIV 
+
+  <!-- WE HERE DISPLAY THE MESSAGE THAT WE RECEIVE FROM OUR BACKEND AGAIN SO THE PROCESS GOES LIKE THIS THAT WE MESSAGE FROM THE SERVER ON 
+    OUR FRONTEND WHICH IS RECEIVED IN OUR BACKEND AND THEN OUR BACKEND SENDS THAT VERY MESSAGE TO OUR FRONTEND AGAIN AND WE SIMPLY DISPLAY IT  -->
+    <div id="messages"></div>   
+
+
+*-> now we refer this message inside our script tag ->             const allMessages = document.getElementById('messages');
+
+
+*---->now as above we just logged the  incoming message instead this time we will create a paragraph field instead all inside our script tag 
+-> i.e ->****NOTE****
+   // now as above we just logged the  incoming message instead this time we will create a paragraph field instead 
+            socket.on('message' , (message)=>{
+                const p = document.createElement('p');
+                p.innerText = message;
+                allMessages.appendChild(p);
+            });
+// so we created a new paragraph tag and appended the innner text of it as the message we received from our backend and then we simply appended 
+// this paragraph tag we created into our all messages
+      
+
